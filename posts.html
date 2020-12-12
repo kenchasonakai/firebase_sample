@@ -1,0 +1,81 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <!- firebaseの読み込み ->
+    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-app.js"></script>
+    <!- firestoreの読み込み ->
+    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-firestore.js"></script>
+    <script>
+    // 自分のAPIキーをセット
+    var firebaseConfig = {
+      apiKey: "AIzaSyDW5N4DxtfMb5Pgb-_S24H9z05K0JBcik8",
+      authDomain: "vibrant-crawler-288910.firebaseapp.com",
+      projectId: "vibrant-crawler-288910",
+      storageBucket: "vibrant-crawler-288910.appspot.com",
+      messagingSenderId: "298204041443",
+      appId: "1:298204041443:web:ba21348c37e5d60612b5d6"
+    };
+    firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <div>
+      <h1>なかいのfirebase_first_app</h1>
+      <div id="posts">
+      </div>
+      <textarea id="textarea"></textarea>
+      <button id="submit">送信</button>
+    </div>
+
+    <script>
+      //最初のHTML文書が読み込まれた時発火
+      document.addEventListener('DOMContentLoaded', () => {
+        // firestoreを参照してdbにセット
+        const db = firebase.firestore();
+        // id = postのHTML要素を取得
+        const messagesElement = document.querySelector("#posts")
+        // #textareaのHTML要素を取得
+        const textareaElement = document.querySelector("#textarea")
+        // #submitボタンのHTML要素を取得
+        const submitElement = document.querySelector("#submit")
+
+        // submitボタンがclickされた時のイベントで発火
+        submitElement.addEventListener('click', () => {
+
+          //上記で定義したtextareaElementの入力内容をfirestoreのcollection(posts)に追加
+          db.collection("posts").add({
+              body: textareaElement.value
+          })
+          //db.collection("posts").addの処理が正常に完了したら返ってきたデータの中のid(docRef.id)をconsoleに表示
+          .then(function(docRef) {
+              console.log("Document written with ID: ", docRef.id);
+              console.log(docRef)
+          })
+          //db.collection("posts").addの処理が正常に完了できなかったらエラー内容ををconsoleに表示
+          .catch(function(error) {
+              console.error("Error adding document: ", error);
+          });
+        })
+
+
+        db.collection("posts")
+        //onSnapshotメソッドでquerySnapshotにcollection("posts")のデータを格納、以降コンテンツに変更があるたび勝手に呼び出されて勝手に更新される
+        .onSnapshot(function(querySnapshot) {
+            //上で定義したmessageElementのHTMLのテキストを初期化
+            messagesElement.innerHTML = ''
+            //messagesという新規配列を定義
+            var messages = [];
+            //querySnapshot.docsをforEach分で回してdocに格納
+            querySnapshot.forEach(function(doc) {
+              //doc.data()に入っているbodyをさっき作ったmessagesに追加
+              messages.push(doc.data().body)
+            });
+            //上で定義したmessagesElementにbodyが配列で格納されてるmessagesをappendメソッドでぶっこんでHTMLに表示して終わり
+            messagesElement.append(messages)
+            //ユーザーがなんか書き込むたびに配列の内容が全部更新されて表示する処理が起こる
+            //doc.idで個々のIDを取れるからそれをfor文で回せば削除機能も作れそう
+        });
+      })
+    </script>
+  </body>
+</html>
